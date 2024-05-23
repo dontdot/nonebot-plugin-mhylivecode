@@ -15,6 +15,8 @@ class LiveCode():
         },
         'genshin':{
             'version': '',
+            'version_title': '',
+            'version_img': '',
             'act_id': '',
             'live_starttime': '',
             'code': [],
@@ -23,6 +25,8 @@ class LiveCode():
         },
         'starrail':{
             'version': '',
+            'version_title': '',
+            'version_img': '',
             'act_id': '',
             'live_starttime': '',
             'code': [],
@@ -73,6 +77,15 @@ class LiveCode():
             outtime = int(dt.timestamp())
         return outtime
 
+    @staticmethod
+    async def get_file(url: str):
+        try:
+            async with httpx.AsyncClient() as client:
+                res = await client.get(url, timeout=10, follow_redirects=True)
+            return res.content
+        except Exception:
+            logger.exception(f'下载文件 - {url} 失败')
+
     async def get_livecode(self, gamecomm, data_config):
         try:
             url = "https://api-takumi.mihoyo.com/event/miyolive/index"
@@ -100,7 +113,7 @@ class LiveCode():
                 async with httpx.AsyncClient() as client:
                     res = await client.get(code_url, headers=headers, timeout=10)
                 code_data = json.loads(res.text)
-                data_config['live_starttime'] = str(codeVer_data['data']['live']['start'])
+                data_config['live_starttime'] = str(codeVer_data['data']['live']['start'][:-3])
                 expired_time = self.time_trans(int(code_data['data']['code_list'][2]['to_get_time']))
                 data_config['expired_time'] = expired_time
                 data_config['is_notice'] = True
@@ -125,6 +138,29 @@ class LiveCode():
             logger.debug(type(e).__name__,e)
             pass
     
+    async def get_ver_imgandtitle(self,version):
+        try:
+            url = 'https://bbs-api.miyoushe.com/post/wapi/userPost?size=20&uid=75276539'
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)",
+                "referer": "https://www.miyoushe.com/"
+            }
+
+            async with httpx.AsyncClient() as client:
+                response = await client.get(url, headers=headers, timeout=10)
+            data = json.loads(response.text)['data']['list']
+            num = 0
+            for d in data:
+                if num < 1 and '前瞻特别节目预告' in d['post']['subject']:
+                    version_p = re.findall(r"\d+.\d+", d['post']['subject'])[0]
+                    if version_p == version:
+                        num += 1
+                        version_title = re.findall(r"「.*」", d['post']['subject'])[0]
+                        version_img = d['post']['cover']
+                        return {'version_title': version_title, 'version_img': version_img}
+        except Exception:
+            raise
+
     async def act_id(self,url):
         try:
             headers = {
@@ -146,6 +182,9 @@ class LiveCode():
                         data_config = self.genshin if gamecomm == self.comm['genshin'] else self.starrail
                         if matches > data_config['version']:
                             data_config["version"] = matches
+                            get_sth_data = await self.get_ver_imgandtitle(matches)
+                            data_config['version_title'] = get_sth_data['version_title']
+                            data_config['version_img'] = get_sth_data['version_img']
                             content = json.loads(d['post']['structured_content'])
                             for d in content:
                                 if 'attributes' not in d:

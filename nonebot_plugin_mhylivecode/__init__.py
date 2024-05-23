@@ -1,7 +1,7 @@
 from nonebot import get_driver, on_command, require
 from nonebot.internal.matcher import Matcher
 from loguru import logger
-from nonebot_plugin_saa import Text, TargetQQPrivate, enable_auto_select_bot, TargetQQGroup
+from nonebot_plugin_saa import TargetQQPrivate, enable_auto_select_bot, TargetQQGroup, MessageFactory, Image, Text
 
 require("nonebot_plugin_apscheduler")
 from nonebot_plugin_apscheduler import scheduler
@@ -49,38 +49,45 @@ async def code(event = None, matcher: Matcher = None):
             title = '原神' if game=='genshin' else '崩铁'
             if code and game_data['is_notice']:
                 expired_time = game_data['expired_time']
-                msgs = [f'{title}{game_data["version"]}版本前瞻直播兑换码： \
+                msgs = [f'{title}{game_data["version"]}版本 \
+                        {game_data["version_title"]}前瞻直播： \
                         兑换码到期：{expired_time}']
                 msgs.append({code[0]})
                 msgs.append({code[1]})
                 msgs.append({code[2]})
             elif not code and game_data['is_notice']:
-                msgs = [f'{title}{game_data["version"]}版本前瞻直播： \
-                        将于{game_data["live_starttime"]}开启']
+                if game_data["version_img"]:
+                    version_img = Image(game_data["version_img"])
+                    msgs = [[f'{title}{game_data["version"]}版本{game_data["version_title"]} \
+                            将于{game_data["live_starttime"]}开启前瞻直播', version_img]]
+                else:
+                    msgs = [f'{title}{game_data["version"]}版本{game_data["version_title"]}： \
+                            将于{game_data["live_starttime"]}开启前瞻直播']
             else:
                 msgs = [f'<{name[game]}>没有可用兑换码']
-            
             for msg in msgs:
+                if isinstance(msg, list):
+                    msg = MessageFactory([msg[0], msg[1]])
+                else:
+                    msg = MessageFactory(msg)
                 if matcher:
-                    msg = str(msg)
-                    await matcher.send(msg)
+                    await msg.send()
                 else:
                     if game_data['is_notice']:
-                        message = Text(msg)
                         if len(send_func['qq']) > 0:
                             for one_qq in send_func['qq']:
                                 target = TargetQQPrivate(user_id=int(one_qq))
-                                await message.send_to(target=target)
+                                await msg.send_to(target=target)
                         if len(send_func['group']) > 0:
                             for one_group in send_func['group']:
                                 target = TargetQQGroup(group_id=int(one_group))
-                                await message.send_to(target=target)
+                                await msg.send_to(target=target)
 
 @scheduler.scheduled_job("cron",
                          hour='20',
                          minute='45',
                          id="check_myslive")
-async def auto_WeiboSign():
+async def auto_check_myslivecode():
     logger.info(f"开始执行米游社直播检查自动任务")
     await code()
     logger.info(f"米游社直播检查自动任务执行完成")
