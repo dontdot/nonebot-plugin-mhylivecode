@@ -16,6 +16,7 @@ class LiveCode():
         'genshin':{
             'version': '',
             'act_id': '',
+            'live_starttime': '',
             'code': [],
             'expired_time': '',
             'is_notice': ''
@@ -23,6 +24,7 @@ class LiveCode():
         'starrail':{
             'version': '',
             'act_id': '',
+            'live_starttime': '',
             'code': [],
             'expired_time': '',
             'is_notice': ''
@@ -98,15 +100,19 @@ class LiveCode():
                 async with httpx.AsyncClient() as client:
                     res = await client.get(code_url, headers=headers, timeout=10)
                 code_data = json.loads(res.text)
-                expired_time = self.time_trans(int(code_data["data"]["code_list"][2]['to_get_time']))
+                data_config['live_starttime'] = str(codeVer_data['data']['live']['start'])
+                expired_time = self.time_trans(int(code_data['data']['code_list'][2]['to_get_time']))
                 data_config['expired_time'] = expired_time
                 data_config['is_notice'] = True
-                code = [item["code"] for item in code_data["data"]["code_list"]]
+                code = []
+                for item in code_data["data"]["code_list"]:
+                    if item['code']:
+                        code.append(item["code"])
                 data_config['code'] = code
                 for k, v in self.comm.items():
                     if gamecomm == str(v):
                         await self.save_liveData(k, data_config)
-                logger.info('成功保存前瞻直播兑换码')
+                        logger.info('成功保存前瞻直播数据')
             else:
                 logger.info('没有code')
                 data_config['is_notice'] = False
