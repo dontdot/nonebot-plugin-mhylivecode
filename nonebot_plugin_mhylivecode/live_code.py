@@ -5,6 +5,7 @@ import pathlib
 import httpx
 import datetime
 from loguru import logger
+import time
 
 class LiveCode():
 
@@ -180,7 +181,18 @@ class LiveCode():
                         num += 1
                         gamecomm = str(d['post']['game_id'])
                         data_config = self.genshin if gamecomm == self.comm['genshin'] else self.starrail
-                        if matches > data_config['version'] or not data_config['code']:
+                        is_start = False
+                        if matches > data_config['version']:
+                            is_start = True
+                        elif matches == data_config['version']:
+                            nowtime = time.time ()
+                            if nowtime < self.time_trans(data_config['live_starttime']):
+                                is_start = False
+                            elif nowtime < self.time_trans(data_config['expired_time']):
+                                if len(data_config['code']) != 3:
+                                    is_start = True
+                        if is_start:
+                            logger.info('开始获取兑换码相关数据')
                             data_config["version"] = matches
                             get_sth_data = await self.get_ver_imgandtitle(matches)
                             data_config['version_title'] = get_sth_data['version_title']

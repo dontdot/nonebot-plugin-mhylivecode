@@ -45,15 +45,15 @@ async def code(event = None, matcher: Matcher = None):
                 if nowtime < LiveCode.time_trans(game_data['expired_time']):
                     game_data['is_notice'] = True   
             await LiveCode.save_liveData(game, game_data)
-            code = game_data['code']
+            codes = game_data['code']
             title = '原神' if game=='genshin' else '崩铁'
-            if code and game_data['is_notice']:
+            if codes and game_data['is_notice']:
                 expired_time = game_data['expired_time']
                 msgs = [f'{title}{game_data["version"]}版本 \
-                        {game_data["version_title"]}前瞻直播： \
+                        \n{game_data["version_title"]}前瞻直播： \
                         兑换码到期：{expired_time}']
-                for c in code:
-                    msgs.append(c)
+                for code in codes:
+                    msgs.append(code)
                 # msgs.append({code[1]})
                 # msgs.append({code[2]})
             elif not code and game_data['is_notice']:
