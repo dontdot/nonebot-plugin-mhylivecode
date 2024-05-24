@@ -180,7 +180,7 @@ class LiveCode():
                         num += 1
                         gamecomm = str(d['post']['game_id'])
                         data_config = self.genshin if gamecomm == self.comm['genshin'] else self.starrail
-                        if matches > data_config['version']:
+                        if matches > data_config['version'] or not data_config['code']:
                             data_config["version"] = matches
                             get_sth_data = await self.get_ver_imgandtitle(matches)
                             data_config['version_title'] = get_sth_data['version_title']
