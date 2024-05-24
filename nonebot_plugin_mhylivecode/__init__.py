@@ -52,9 +52,10 @@ async def code(event = None, matcher: Matcher = None):
                 msgs = [f'{title}{game_data["version"]}版本 \
                         {game_data["version_title"]}前瞻直播： \
                         兑换码到期：{expired_time}']
-                msgs.append({code[0]})
-                msgs.append({code[1]})
-                msgs.append({code[2]})
+                for c in code:
+                    msgs.append(c)
+                # msgs.append({code[1]})
+                # msgs.append({code[2]})
             elif not code and game_data['is_notice']:
                 if game_data["version_img"]:
                     version_img = Image(game_data["version_img"])
