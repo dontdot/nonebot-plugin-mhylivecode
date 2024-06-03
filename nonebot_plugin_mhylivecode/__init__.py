@@ -56,7 +56,7 @@ async def code(event = None, matcher: Matcher = None):
                     msgs.append(code)
                 # msgs.append({code[1]})
                 # msgs.append({code[2]})
-            elif not code and game_data['is_notice']:
+            elif not codes and game_data['is_notice']:
                 if game_data["version_img"]:
                     version_img = Image(game_data["version_img"])
                     msgs = [[f'{title}{game_data["version"]}版本{game_data["version_title"]} \
