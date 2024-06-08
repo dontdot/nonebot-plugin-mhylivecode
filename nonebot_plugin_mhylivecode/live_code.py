@@ -139,9 +139,11 @@ class LiveCode():
             logger.debug(type(e).__name__,e)
             pass
     
-    async def get_ver_imgandtitle(self,version):
+    async def get_ver_imgandtitle(self,gamecomm, version):
         try:
-            url = 'https://bbs-api.miyoushe.com/post/wapi/userPost?size=20&uid=75276539'
+            gs_url = 'https://bbs-api.miyoushe.com/post/wapi/userPost?size=20&uid=75276539'
+            sr_url = 'https://bbs-api.miyoushe.com/post/wapi/userPost?size=20&uid=288909600'
+            url = gs_url if gamecomm == '2' else sr_url
             headers = {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)",
                 "referer": "https://www.miyoushe.com/"
@@ -159,8 +161,8 @@ class LiveCode():
                         version_title = re.findall(r"「.*」", d['post']['subject'])[0]
                         version_img = d['post']['cover']
                         return {'version_title': version_title, 'version_img': version_img}
-        except Exception:
-            raise
+        except Exception as e:
+            raise e
 
     async def act_id(self,url):
         try:
@@ -194,7 +196,7 @@ class LiveCode():
                         if is_start:
                             logger.info('开始获取兑换码相关数据')
                             data_config["version"] = matches
-                            get_sth_data = await self.get_ver_imgandtitle(matches)
+                            get_sth_data = await self.get_ver_imgandtitle(gamecomm, matches)
                             data_config['version_title'] = get_sth_data['version_title']
                             data_config['version_img'] = get_sth_data['version_img']
                             content = json.loads(d['post']['structured_content'])
@@ -211,7 +213,8 @@ class LiveCode():
                                     return True
                                 else:
                                     continue
-        except Exception:
+        except Exception as e:
+            logger.error(e)
             return False
   
     async def gs_actid(self):
