@@ -59,10 +59,10 @@ async def code(event = None, matcher: Matcher = None):
             elif not codes and game_data['is_notice']:
                 if game_data["version_img"]:
                     version_img = Image(game_data["version_img"])
-                    msgs = [[f'{title}{game_data["version"]}版本{game_data["version_title"]} \
+                    msgs = [[f'{title}{game_data["version"]}版本\n{game_data["version_title"]}\
                             将于{game_data["live_starttime"]}开启前瞻直播', version_img]]
                 else:
-                    msgs = [f'{title}{game_data["version"]}版本{game_data["version_title"]}： \
+                    msgs = [f'{title}{game_data["version"]}版本\n{game_data["version_title"]}：\
                             将于{game_data["live_starttime"]}开启前瞻直播']
             else:
                 msgs = [f'<{name[game]}>没有可用兑换码']
